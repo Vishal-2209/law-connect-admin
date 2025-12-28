@@ -110,9 +110,9 @@ export default function Lawyers() {
         </div>
       </div>
 
-      <div className="card">
+      <div className="card overflow-hidden">
         <div className="table-container">
-          <table className="w-full">
+          <table className="responsive-table">
             <thead>
               <tr>
                 <th>Professional</th>
@@ -123,51 +123,56 @@ export default function Lawyers() {
                 <th className="text-right">Actions</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-slate-100">
               {loading ? (
-                 <tr><td colSpan="6" className="text-center p-8">Loading lawyers...</td></tr>
+                 <tr><td colSpan="6" className="text-center p-8 text-slate-500">Loading lawyers...</td></tr>
               ) : filteredLawyers.length === 0 ? (
-                 <tr><td colSpan="6" className="text-center p-8">No lawyers found.</td></tr>
+                 <tr><td colSpan="6" className="text-center p-8 text-slate-500">No lawyers found.</td></tr>
               ) : (
                 filteredLawyers.map(lawyer => (
-                  <tr key={lawyer.id}>
-                    <td>
+                  <tr key={lawyer.id} className="hover:bg-slate-50/50 transition-colors">
+                    <td data-label="Professional">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold overflow-hidden">
+                        <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold overflow-hidden shrink-0">
                            {lawyer.profile_photo_url ? (
                             <img src={lawyer.profile_photo_url} alt="" className="w-full h-full object-cover"/>
                           ) : (
                             lawyer.full_name?.[0] || 'L'
                           )}
                         </div>
-                        <div>
-                          <p className="font-medium text-slate-900">{lawyer.full_name || 'Unknown'}</p>
-                          <p className="text-xs text-slate-500">{lawyer.occupation || 'Lawyer'}</p>
+                        <div className="truncate max-w-[150px]">
+                          <p className="font-medium text-slate-900 truncate">{lawyer.full_name || 'Unknown'}</p>
+                          <p className="text-[10px] text-slate-500">{lawyer.occupation || 'Lawyer'}</p>
                         </div>
                       </div>
                     </td>
-                    <td>
-                      <div className="flex items-center gap-2">
-                        <Award size={14} className="text-amber-500" />
-                        <span className="text-sm font-medium">{lawyer.bar_council_number || 'N/A'}</span>
+                    <td data-label="Credentials">
+                      <div className="space-y-0.5">
+                        <div className="flex items-center gap-2">
+                          <Award size={14} className="text-amber-500 shrink-0" />
+                          <span className="text-sm font-medium text-slate-800">{lawyer.bar_council_number || 'N/A'}</span>
+                        </div>
+                        <p className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">{lawyer.specialization || 'General'}</p>
                       </div>
-                      <p className="text-xs text-slate-500">{lawyer.specialization || 'General'}</p>
                     </td>
-                    <td>
-                      <p className="text-sm">{lawyer.email}</p>
-                      <p className="text-xs text-slate-500">{lawyer.phone}</p>
+                    <td data-label="Contact">
+                      <div className="text-sm">
+                        <p className="text-slate-900">{lawyer.email}</p>
+                        <p className="text-slate-500 text-xs">{lawyer.phone}</p>
+                      </div>
                     </td>
-                    <td>
-                      <p className="text-sm">{lawyer.current_city}, {lawyer.current_state}</p>
+                    <td data-label="Location">
+                      <p className="text-sm text-slate-600">{lawyer.current_city}, {lawyer.current_state}</p>
                     </td>
-                    <td>
-                      {lawyer.created_at ? format(new Date(lawyer.created_at), 'MMM d, yyyy') : '-'}
+                    <td data-label="Joined">
+                      <span className="text-sm text-slate-500 font-medium">
+                        {lawyer.created_at ? format(new Date(lawyer.created_at), 'MMM d, yyyy') : '-'}
+                      </span>
                     </td>
-                    <td className="text-right">
-                      <div className="flex items-center justify-end gap-2">
+                    <td data-label="Actions" className="text-right">
+                      <div className="flex items-center justify-end gap-1">
                         <button 
                           onClick={() => { setSelectedLawyer(lawyer); setIsEditOpen(true); }}
-                          disabled={actionLoading === lawyer.id}
                           className="btn btn-ghost hover:text-indigo-600 p-2"
                           title="Edit Lawyer"
                         >

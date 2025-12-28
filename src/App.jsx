@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
-import { BrowserRouter as Router, Routes, Route, Navigate, Outlet, useLocation } from 'react-router-dom'
+import { Link, BrowserRouter as Router, Routes, Route, Navigate, Outlet, useLocation } from 'react-router-dom'
 import { getAdminKey, getSupabase, setAdminKey, resetSupabase } from './lib/supabaseClient'
-import { LayoutDashboard, Users, UserCog, Settings, LogOut, ShieldAlert, Briefcase, GitPullRequest, ClipboardCheck, Bell, MessageSquare } from 'lucide-react'
+import { LayoutDashboard, Users, UserCog, Settings, LogOut, ShieldAlert, Briefcase, GitPullRequest, ClipboardCheck, Bell, MessageSquare, X, Menu } from 'lucide-react'
 
 // Components
 import Dashboard from './pages/Dashboard'
@@ -63,8 +63,8 @@ function Layout() {
              <span className="font-bold text-xl text-slate-800 tracking-tight">Vakaalat Admin</span>
           </div>
           {isMobile && (
-            <button onClick={() => setSidebarOpen(false)} className="text-slate-400">
-                <ShieldAlert size={20} className="rotate-45" /> {/* Close Icon analog */}
+            <button onClick={() => setSidebarOpen(false)} className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-lg">
+                <X size={20} />
             </button>
           )}
         </div>
@@ -122,17 +122,16 @@ function Layout() {
 
 function NavItem({ to, icon, label, active, onClick }) {
   return (
-    <a 
-        href={to} 
-        onClick={(e) => {
-            // Allow default navigation, but trigger close for mobile
-            if (onClick) onClick()
-        }}
-        className={`flex items-center gap-3 p-3 rounded-lg transition-all ${active ? 'bg-indigo-50 text-indigo-600 font-medium' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
+    <Link 
+        to={to} 
+        onClick={onClick}
+        className={`flex items-center gap-3 p-3 rounded-lg transition-all ${active ? 'bg-indigo-50 text-indigo-600 font-bold' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
     >
-      {icon}
+      <div className={active ? 'text-indigo-600' : 'text-slate-400'}>
+        {icon}
+      </div>
       <span className="whitespace-nowrap">{label}</span>
-    </a>
+    </Link>
   )
 }
 

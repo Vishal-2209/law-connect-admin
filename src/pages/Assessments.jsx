@@ -85,9 +85,9 @@ export default function Assessments() {
         </div>
       </div>
 
-      <div className="card">
+      <div className="card overflow-hidden">
         <div className="table-container">
-          <table className="w-full">
+          <table className="responsive-table">
              <thead>
               <tr>
                 <th>Category</th>
@@ -97,34 +97,36 @@ export default function Assessments() {
                 <th className="text-right">Actions</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-slate-100">
                {loading ? (
-                 <tr><td colSpan="5" className="text-center p-8">Loading...</td></tr>
+                 <tr><td colSpan="5" className="text-center p-8 text-slate-500">Loading assessments...</td></tr>
               ) : filtered.length === 0 ? (
-                 <tr><td colSpan="5" className="text-center p-8">No records found.</td></tr>
+                 <tr><td colSpan="5" className="text-center p-8 text-slate-500">No records found.</td></tr>
               ) : (
                 filtered.map(a => (
-                   <tr key={a.id} className="group hover:bg-slate-50">
-                     <td>
+                   <tr key={a.id} className="group hover:bg-slate-50 transition-colors">
+                     <td data-label="Category">
                        <div className="flex items-center gap-3">
-                         <div className="p-2 bg-green-50 text-green-600 rounded-lg">
+                         <div className="p-2 bg-green-50 text-green-600 rounded-lg shrink-0">
                            <ClipboardCheck size={18} />
                          </div>
-                         <span className="font-medium text-slate-800">{a.category_title}</span>
+                         <span className="font-semibold text-slate-800 text-sm truncate max-w-[200px]">{a.category_title}</span>
                        </div>
                      </td>
-                     <td>
-                       <span className="badge badge-gray">{a.likely_category || 'Pending'}</span>
+                     <td data-label="Result">
+                       <span className="badge badge-gray text-[10px] font-bold tracking-tight">{a.likely_category || 'Pending'}</span>
                      </td>
-                     <td>
-                        <div className="text-sm font-medium">{a.user_name}</div>
-                        <div className="text-xs text-slate-400 font-mono">{a.user_id?.slice(0,8)}</div>
+                     <td data-label="User">
+                        <div className="text-sm font-semibold text-slate-800">{a.user_name}</div>
+                        <div className="text-[10px] text-slate-400 font-mono italic">{a.user_id?.slice(0,8)}</div>
                      </td>
-                     <td>
-                        {a.created_at ? format(new Date(a.created_at), 'MMM d, yyyy') : '-'}
+                     <td data-label="Date">
+                        <span className="text-sm text-slate-500 font-medium">
+                          {a.created_at ? format(new Date(a.created_at), 'MMM d, yyyy') : '-'}
+                        </span>
                      </td>
-                     <td className="text-right">
-                       <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                     <td data-label="Actions" className="text-right">
+                       <div className="flex items-center justify-end gap-1">
                         <button 
                           onClick={() => setSelectedAssessment(a)}
                           className="btn btn-ghost hover:text-indigo-600 p-2"

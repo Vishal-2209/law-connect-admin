@@ -97,9 +97,9 @@ export default function Cases() {
         </div>
       </div>
 
-      <div className="card">
+      <div className="card overflow-hidden">
         <div className="table-container">
-          <table className="w-full">
+          <table className="responsive-table">
             <thead>
               <tr>
                 <th>Case Details</th>
@@ -109,48 +109,50 @@ export default function Cases() {
                 <th className="text-right">Actions</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-slate-100">
               {loading ? (
-                 <tr><td colSpan="5" className="text-center p-8">Loading cases...</td></tr>
+                 <tr><td colSpan="5" className="text-center p-8 text-slate-500">Loading cases...</td></tr>
               ) : filteredCases.length === 0 ? (
-                 <tr><td colSpan="5" className="text-center p-8">No cases found.</td></tr>
+                 <tr><td colSpan="5" className="text-center p-8 text-slate-500">No cases found.</td></tr>
               ) : (
                 filteredCases.map(c => (
-                  <tr key={c.case_id} className="group">
-                    <td>
+                  <tr key={c.case_id} className="hover:bg-slate-50/50 transition-colors group">
+                    <td data-label="Case Details">
                       <div className="flex items-start gap-3">
-                        <div className="mt-1 p-2 bg-indigo-50 text-indigo-600 rounded-lg">
+                        <div className="mt-1 p-2 bg-indigo-50 text-indigo-600 rounded-lg shrink-0">
                           <FileText size={18} />
                         </div>
-                        <div>
-                          <p className="font-medium text-slate-900 cursor-pointer hover:text-indigo-600" onClick={() => setSelectedCase(c)}>
+                        <div className="truncate max-w-[200px]">
+                          <p className="font-medium text-slate-900 cursor-pointer hover:text-indigo-600 truncate" onClick={() => setSelectedCase(c)}>
                             {c.case_name}
                           </p>
-                          <p className="text-xs text-slate-500 font-mono">{c.case_number}</p>
-                          <p className="text-xs text-slate-500">{c.court_type}</p>
+                          <p className="text-[10px] text-slate-500 font-mono tracking-tight">{c.case_number}</p>
+                          <p className="text-[10px] text-slate-400 uppercase font-bold">{c.court_type}</p>
                         </div>
                       </div>
                     </td>
-                    <td>
+                    <td data-label="Client">
                       {c.clients ? (
-                        <div>
-                          <p className="text-sm font-medium text-slate-900">{c.clients.full_name}</p>
+                        <div className="text-sm">
+                          <p className="font-medium text-slate-900">{c.clients.full_name}</p>
                           <p className="text-xs text-slate-500">{c.clients.phone}</p>
                         </div>
                       ) : (
                         <span className="text-slate-400 text-xs italic">Unknown Client</span>
                       )}
                     </td>
-                    <td>
+                    <td data-label="Status">
                       <span className={`badge ${c.Case_Status === 'Active' ? 'badge-green' : 'badge-gray'}`}>
                         {c.Case_Status}
                       </span>
                     </td>
-                    <td>
-                      {c.filing_date ? format(new Date(c.filing_date), 'MMM d, yyyy') : '-'}
+                    <td data-label="Filing Date">
+                      <span className="text-sm text-slate-500 font-medium">
+                        {c.filing_date ? format(new Date(c.filing_date), 'MMM d, yyyy') : '-'}
+                      </span>
                     </td>
-                    <td className="text-right">
-                      <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <td data-label="Actions" className="text-right">
+                      <div className="flex items-center justify-end gap-1">
                         <button 
                           onClick={() => { setSelectedCase(c); setIsEditOpen(true); }}
                           className="btn btn-ghost hover:text-indigo-600 p-2"

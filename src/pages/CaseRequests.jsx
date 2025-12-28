@@ -88,9 +88,9 @@ export default function CaseRequests() {
         </div>
       </div>
 
-      <div className="card">
+      <div className="card overflow-hidden">
         <div className="table-container">
-          <table className="w-full">
+          <table className="responsive-table">
             <thead>
               <tr>
                 <th>Request ID</th>
@@ -102,61 +102,61 @@ export default function CaseRequests() {
                 <th className="text-right">Actions</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-slate-100">
               {loading ? (
-                 <tr><td colSpan="7" className="text-center p-8">Loading requests...</td></tr>
+                 <tr><td colSpan="7" className="text-center p-8 text-slate-500">Loading requests...</td></tr>
               ) : filteredRequests.length === 0 ? (
-                 <tr><td colSpan="7" className="text-center p-8">No requests found.</td></tr>
+                 <tr><td colSpan="7" className="text-center p-8 text-slate-500">No requests found.</td></tr>
               ) : (
                 filteredRequests.map(r => (
-                  <tr key={r.id} className="group hover:bg-slate-50">
-                    <td>
-                      <div className="font-mono text-xs text-slate-500">{r.id.slice(0,8)}</div>
-                      <div className="text-xs text-slate-400">{format(new Date(r.created_at), 'MMM d, HH:mm')}</div>
+                  <tr key={r.id} className="group hover:bg-slate-50 transition-colors">
+                    <td data-label="Request ID">
+                      <div className="font-mono text-xs text-slate-500 font-bold">{r.id.slice(0,8)}</div>
+                      <div className="text-[10px] text-slate-400 font-medium">{format(new Date(r.created_at), 'MMM d, HH:mm')}</div>
                     </td>
-                    <td>
+                    <td data-label="Client">
                       {r.clients ? (
                         <div 
-                          className="cursor-pointer hover:text-indigo-600 font-medium text-slate-900"
+                          className="cursor-pointer hover:text-indigo-600 font-semibold text-slate-800 text-sm"
                           onClick={() => setSelectedRequest(r.clients)}
                           title="View Client Details"
                         >
                           {r.clients.full_name}
                         </div>
-                      ) : <span className="text-slate-400">Unknown</span>}
+                      ) : <span className="text-slate-400 text-xs italic">Unknown</span>}
                     </td>
-                    <td className="text-center text-slate-300">
+                    <td className="text-center text-slate-300 md:table-cell hidden">
                       <ArrowRight size={16} />
                     </td>
-                    <td>
+                    <td data-label="Lawyer">
                       {r.lawyers ? (
                         <div 
-                           className="cursor-pointer hover:text-indigo-600 font-medium text-slate-900"
+                           className="cursor-pointer hover:text-indigo-600 font-semibold text-slate-800 text-sm"
                            onClick={() => setSelectedRequest(r.lawyers)}
                            title="View Lawyer Details"
                         >
                           {r.lawyers.full_name}
                         </div>
-                      ) : <span className="text-slate-400">Unknown</span>}
+                      ) : <span className="text-slate-400 text-xs italic">Unknown</span>}
                     </td>
-                    <td>
+                    <td data-label="Case">
                       {r.case_table ? (
                          <div 
-                           className="cursor-pointer hover:text-indigo-600 text-sm text-slate-800"
+                           className="cursor-pointer hover:text-indigo-600 text-xs text-slate-600 font-medium truncate max-w-[150px]"
                            onClick={() => setSelectedRequest(r.case_table)}
                            title="View Case Details"
                          >
                            {r.case_table.case_name}
                          </div>
-                      ) : <span className="text-slate-400">Unknown Case</span>}
+                      ) : <span className="text-slate-400 text-xs italic">Unknown Case</span>}
                     </td>
-                    <td>
-                      <span className={`badge ${getStatusColor(r.status)} capitalize`}>
+                    <td data-label="Status">
+                      <span className={`badge ${getStatusColor(r.status)} capitalize text-[10px] py-0.5 px-2`}>
                         {r.status || 'Pending'}
                       </span>
                     </td>
-                    <td className="text-right">
-                      <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <td data-label="Actions" className="text-right">
+                      <div className="flex items-center justify-end gap-1">
                         <button 
                           onClick={() => { setSelectedRequest(r); setIsEditOpen(true); }}
                           className="btn btn-ghost hover:text-indigo-600 p-2"
@@ -167,7 +167,7 @@ export default function CaseRequests() {
                         <button 
                           onClick={() => setSelectedRequest(r)}
                           className="btn btn-ghost hover:text-indigo-600 p-2"
-                          title="View Request Details"
+                          title="View Details"
                         >
                           <Eye size={18} />
                         </button>

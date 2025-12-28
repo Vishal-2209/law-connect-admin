@@ -111,60 +111,64 @@ export default function Clients() {
         </div>
       </div>
 
-      <div className="card">
+      <div className="card overflow-hidden">
         <div className="table-container">
-          <table className="w-full">
+          <table className="responsive-table">
             <thead>
               <tr>
+                <th>Profile</th>
                 <th>Name</th>
-                <th>Contact</th>
-                <th>Location</th>
-                <th>Status</th>
+                <th>Phone</th>
+                <th>Email</th>
                 <th>Joined</th>
-                <th className="text-right">Actions</th>
+                <th>Status</th>
+                <th>Actions</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-slate-100">
               {loading ? (
-                 <tr><td colSpan="6" className="text-center p-8">Loading clients...</td></tr>
+                 <tr><td colSpan="7" className="text-center p-8">Loading clients...</td></tr>
               ) : filteredClients.length === 0 ? (
-                 <tr><td colSpan="6" className="text-center p-8">No clients found.</td></tr>
+                 <tr><td colSpan="7" className="text-center p-8">No clients found.</td></tr>
               ) : (
                 filteredClients.map(client => (
                   <tr key={client.id}>
-                    <td>
+                    <td data-label="Profile">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 font-bold overflow-hidden">
+                        <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 font-bold overflow-hidden shrink-0">
                           {client.profile_photo_url ? (
                             <img src={client.profile_photo_url} alt="" className="w-full h-full object-cover"/>
                           ) : (
                             client.full_name?.[0] || 'U'
                           )}
                         </div>
-                        <div>
-                          <p className="font-medium text-slate-900">{client.full_name || 'Unknown'}</p>
-                          <p className="text-xs text-slate-500">ID: {client.id.slice(0,8)}...</p>
+                        <div className="md:hidden lg:block truncate max-w-[120px]">
+                          <p className="font-medium text-slate-900 truncate">{client.full_name || 'Unknown'}</p>
+                          <p className="text-[10px] text-slate-500">ID: {client.id.slice(0,8)}</p>
                         </div>
                       </div>
                     </td>
-                    <td>
-                      <p className="text-sm">{client.email}</p>
-                      <p className="text-xs text-slate-500">{client.phone}</p>
+                    <td data-label="Contact">
+                      <div className="text-sm">
+                        <p className="text-slate-900">{client.email}</p>
+                        <p className="text-slate-500 text-xs">{client.phone}</p>
+                      </div>
                     </td>
-                    <td>
-                      <p className="text-sm">{client.current_city}, {client.current_state}</p>
+                    <td data-label="Location">
+                      <p className="text-sm text-slate-600">{client.current_city}, {client.current_state}</p>
                     </td>
-                    <td>
+                    <td data-label="Status">
                       <span className="badge badge-green">Active</span>
                     </td>
-                    <td>
-                      {client.created_at ? format(new Date(client.created_at), 'MMM d, yyyy') : '-'}
+                    <td data-label="Joined">
+                      <span className="text-sm text-slate-500">
+                        {client.created_at ? format(new Date(client.created_at), 'MMM d, yyyy') : '-'}
+                      </span>
                     </td>
-                    <td className="text-right">
-                      <div className="flex items-center justify-end gap-2">
+                    <td data-label="Actions" className="text-right">
+                      <div className="flex items-center justify-end gap-1">
                         <button 
-                          onClick={() => { setSelectedClient(client); setIsEditOpen(true); }} // Assume we added this state
-                          disabled={actionLoading === client.id}
+                          onClick={() => { setSelectedClient(client); setIsEditOpen(true); }}
                           className="btn btn-ghost hover:text-indigo-600 p-2"
                           title="Edit Client"
                         >

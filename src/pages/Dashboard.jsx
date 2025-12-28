@@ -107,8 +107,8 @@ export default function Dashboard() {
             <h3 className="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2">
                 <PieChartIcon size={20} className="text-indigo-500" /> Case Status Distribution
             </h3>
-            <div className="flex-1 w-full h-full min-h-[300px]">
-                <ResponsiveContainer width="100%" height={300}>
+            <div className="flex-1 w-full h-full min-h-[250px] md:min-h-[300px]">
+                <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                         <Pie
                             data={chartsData.caseStatus}
@@ -137,8 +137,8 @@ export default function Dashboard() {
             <h3 className="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2">
                 <TrendingUp size={20} className="text-emerald-500" /> Top Specializations
             </h3>
-            <div className="flex-1 w-full h-full min-h-[300px]">
-                <ResponsiveContainer width="100%" height={300}>
+            <div className="flex-1 w-full h-full min-h-[250px] md:min-h-[300px]">
+                <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={chartsData.lawyerSpecialization} layout="vertical" margin={{ left: 20 }}>
                         <XAxis type="number" hide />
                         <YAxis dataKey="name" type="category" width={120} tick={{fontSize: 12}} />
@@ -158,24 +158,24 @@ export default function Dashboard() {
                 <h3 className="text-lg font-bold text-slate-800">Recent Cases</h3>
                 <button className="text-sm text-indigo-600 hover:underline" onClick={() => window.location.href='/cases'}>View All</button>
             </div>
-            <div className="overflow-x-auto">
-                <table className="w-full text-left text-sm">
-                    <thead className="bg-slate-50 text-slate-500 border-b border-slate-100">
+            <div className="table-container">
+                <table className="responsive-table">
+                    <thead>
                         <tr>
-                            <th className="px-6 py-3 font-medium">Case Name</th>
-                            <th className="px-6 py-3 font-medium">Type</th>
-                            <th className="px-6 py-3 font-medium">Date</th>
-                            <th className="px-6 py-3 font-medium">Status</th>
+                            <th>Case Name</th>
+                            <th>Type</th>
+                            <th>Date</th>
+                            <th>Status</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
                         {recentCases.map(c => (
                             <tr key={c.case_id} className="hover:bg-slate-50/50">
-                                <td className="px-6 py-4 font-medium text-slate-800">{c.case_name}</td>
-                                <td className="px-6 py-4 text-slate-600">{c.case_type}</td>
-                                <td className="px-6 py-4 text-slate-500">{c.created_at ? format(new Date(c.created_at), 'MMM d') : '-'}</td>
-                                <td className="px-6 py-4">
-                                    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${c.Case_Status === 'Active' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-600'}`}>
+                                <td data-label="Case Name" className="font-medium text-slate-800">{c.case_name}</td>
+                                <td data-label="Type" className="text-slate-600 text-xs font-bold uppercase">{c.case_type}</td>
+                                <td data-label="Date" className="text-slate-500 text-sm">{c.created_at ? format(new Date(c.created_at), 'MMM d') : '-'}</td>
+                                <td data-label="Status">
+                                    <span className={`badge ${c.Case_Status === 'Active' ? 'badge-green' : 'badge-gray'}`}>
                                         {c.Case_Status}
                                     </span>
                                 </td>
