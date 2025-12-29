@@ -19,16 +19,19 @@ export default function CreateUserModal({ isOpen, onClose, defaultRole = 'client
   })
 
   // Profile Data
+  // Profile Data
   const [profileData, setProfileData] = useState({
       current_state: '',
       current_city: '',
-      specialization: '',
+      primary_specialization: '',
+      other_specializations: [],
       experience_years: 0
   })
-  const [file, setFile] = useState(null)
+
   
   // Experience Data (for Lawyers)
   const [experiences, setExperiences] = useState([])
+  const [file, setFile] = useState(null)
 
   const handleAuthChange = (e) => {
     setAuthData({ ...authData, [e.target.name]: e.target.value })
@@ -53,9 +56,9 @@ export default function CreateUserModal({ isOpen, onClose, defaultRole = 'client
       setFile(e.target.files[0])
     }
   }
-
+  
   const addExperience = () => {
-      setExperiences([...experiences, { company: '', role: '', duration: '' }])
+      setExperiences([...experiences, { case_title: '', case_domain: '', case_description: '', case_outcome: '' }])
   }
 
   const updateExperience = (index, field, value) => {
@@ -84,7 +87,7 @@ export default function CreateUserModal({ isOpen, onClose, defaultRole = 'client
                   setStep(2)
                   // Pre-fill 5 slots if empty
                   if (experiences.length === 0) {
-                      setExperiences(Array(5).fill({ company: '', role: '', duration: '' }))
+                      setExperiences(Array(2).fill({ case_title: '', case_domain: '', case_description: '', case_outcome: '' }))
                   }
                   return
               }
@@ -109,9 +112,9 @@ export default function CreateUserModal({ isOpen, onClose, defaultRole = 'client
        if (authError) throw authError
        const userId = authUser.user.id
 
-       // 2. Upload Photo
+       // 2. Upload Photo (Lawyer Only)
        let profilePhotoUrl = null
-       if (file) {
+       if (authData.role === 'lawyer' && file) {
          const fileExt = file.name.split('.').pop()
          const filePath = `${userId}/profile.${fileExt}`
          const { error: uploadError } = await supabase.storage.from('Photos').upload(filePath, file)
@@ -122,36 +125,65 @@ export default function CreateUserModal({ isOpen, onClose, defaultRole = 'client
        }
 
        // 3. Insert Profile Data
-       const table = authData.role === 'lawyer' ? 'lawyers' : 'clients'
+       const isLawyer = authData.role === 'lawyer'
+       const table = isLawyer ? 'lawyers' : 'clients'
+       
+       // Define allowed fields based on schema
+       const clientFields = [
+         'full_name', 'age', 'occupation', 'current_address_line1', 
+         'current_city', 'current_state', 'phone', 'email'
+       ]
+       
+       const lawyerFields = [
+         'full_name', 'age', 'current_address_line1', 'current_city', 
+         'current_state', 'phone', 'email', 'bar_council_number', 
+         'primary_specialization', 'other_specializations',
+         'experience_years', 'profile_photo_url', 'law_school'
+       ]
+
+       const allowedFields = isLawyer ? lawyerFields : clientFields
        const profileInsert = {
          id: userId,
          email: authData.email,
-         profile_photo_url: profilePhotoUrl,
-         ...profileData
+         ...(profilePhotoUrl && { profile_photo_url: profilePhotoUrl })
        }
-       
-       // Clean empty fields
-       Object.keys(profileInsert).forEach(k => {
-         if (profileInsert[k] === '' || profileInsert[k] === undefined) delete profileInsert[k]
+
+       // Only add fields that are allowed and have values
+       allowedFields.forEach(field => {
+         if (profileData[field] !== undefined && profileData[field] !== '') {
+            // Convert numbers
+            if (field === 'age' || field === 'experience_years') {
+                profileInsert[field] = parseInt(profileData[field], 10)
+            } else {
+                profileInsert[field] = profileData[field]
+            }
+         }
        })
+
+       if (!isLawyer) {
+           // Default occupation for client if not provided, though it's optional in schema? 
+           // Schema says occupation text, nullable.
+       } else {
+           // Default occupation for lawyer
+           profileInsert['occupation'] = 'Lawyer'
+       }
 
        const { error: dbError } = await supabase.from(table).insert(profileInsert)
        if (dbError) throw dbError
 
-       // 4. Insert Experiences if Lawyer and applicable
-       if (authData.role === 'lawyer' && experiences.length > 0) {
+       // 3. Insert Experiences if Lawyer and applicable
+       if (isLawyer && experiences.length > 0) {
            const expInserts = experiences.map(exp => ({
                lawyer_id: userId,
-               title: exp.role, // Mapping 'role' to 'title' based on assumption, or 'company'
-               description: `${exp.role} at ${exp.company}`, // Combine for description
-               created_at: new Date().toISOString()
-           })).filter(e => e.description.trim().length > 3) // Basic filter
+               case_title: exp.case_title,
+               case_domain: exp.case_domain,
+               case_description: exp.case_description,
+               case_outcome: exp.case_outcome
+           })).filter(e => e.case_title && e.case_title.length > 2)
            
            if (expInserts.length > 0) {
-               // We try to insert into 'experience_lawyers'
-               // If table doesn't exist this will fail silently in catch block, user should create table or we ignore
-               const { error: expError } = await supabase.from('experience_lawyers').insert(expInserts)
-               if (expError) console.warn('Experience insert failed (table might be missing):', expError)
+               const { error: expError } = await supabase.from('lawyer_experience_details').insert(expInserts)
+               if (expError) console.warn('Case experience insert failed:', expError)
            }
        }
 
@@ -223,7 +255,7 @@ export default function CreateUserModal({ isOpen, onClose, defaultRole = 'client
     <div className="space-y-4">
       <h4 className="font-semibold text-slate-700 mb-2">Profile Details ({authData.role})</h4>
       
-       {/* Photo Upload */}
+      {authData.role === 'lawyer' && (
        <div className="flex justify-center mb-6">
          <div className="relative group cursor-pointer">
            <div className={`w-24 h-24 rounded-full flex items-center justify-center border-2 border-dashed border-slate-300 ${file ? 'bg-indigo-50 border-indigo-500' : 'bg-slate-50'}`}>
@@ -237,6 +269,7 @@ export default function CreateUserModal({ isOpen, onClose, defaultRole = 'client
             <div className="text-xs text-center mt-2 text-slate-500">{file ? 'Change Photo' : 'Upload Photo'}</div>
          </div>
        </div>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="md:col-span-2">
@@ -252,13 +285,50 @@ export default function CreateUserModal({ isOpen, onClose, defaultRole = 'client
         ) : (
            <>
             <div className="md:col-span-2"><label className="block text-sm font-medium text-slate-600 mb-1">Bar Council Number *</label><input className="input" name="bar_council_number" value={profileData.bar_council_number || ''} onChange={handleProfileChange} /></div>
+            
+            <div><label className="block text-sm font-medium text-slate-600 mb-1">Age</label><input type="number" className="input" name="age" value={profileData.age || ''} onChange={handleProfileChange} /></div>
+            
+            <div><label className="block text-sm font-medium text-slate-600 mb-1">Law School</label><input className="input" name="law_school" value={profileData.law_school || ''} onChange={handleProfileChange} /></div>
+
             <div>
-                <label className="block text-sm font-medium text-slate-600 mb-1">Specialization</label>
-                <select className="input" name="specialization" value={profileData.specialization || ''} onChange={handleProfileChange}>
-                    <option value="">Select Specialization</option>
+                <label className="block text-sm font-medium text-slate-600 mb-1">Primary Specialization</label>
+                <select className="input" name="primary_specialization" value={profileData.primary_specialization || ''} onChange={handleProfileChange}>
+                    <option value="">Select Primary Specialization</option>
                     {LAWYER_SPECIALIZATIONS.map(s => <option key={s} value={s}>{s}</option>)}
                 </select>
             </div>
+
+            {parseInt(profileData.experience_years) > 2 && (
+            <div>
+                 <label className="block text-sm font-medium text-slate-600 mb-1">Other Specializations</label>
+                 <div className="flex flex-wrap gap-2 p-3 border border-slate-100 rounded-lg bg-slate-50/50">
+                    {LAWYER_SPECIALIZATIONS.filter(s => s !== profileData.primary_specialization).map(s => {
+                        const isSelected = profileData.other_specializations?.includes(s)
+                        return (
+                            <button
+                                key={s}
+                                onClick={() => {
+                                    const current = profileData.other_specializations || []
+                                    if (isSelected) {
+                                        setProfileData(prev => ({ ...prev, other_specializations: current.filter(item => item !== s) }))
+                                    } else {
+                                        setProfileData(prev => ({ ...prev, other_specializations: [...current, s] }))
+                                    }
+                                }}
+                                className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all duration-200 ${
+                                    isSelected 
+                                    ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm' 
+                                    : 'bg-white text-slate-600 border-slate-200 hover:border-indigo-300 hover:text-indigo-600'
+                                }`}
+                            >
+                                {s} {isSelected && '✓'}
+                            </button>
+                        )
+                    })}
+                 </div>
+            </div>
+            )}
+
             <div><label className="block text-sm font-medium text-slate-600 mb-1">Experience (Years)</label><input type="number" className="input" name="experience_years" value={profileData.experience_years || ''} onChange={handleProfileChange} /></div>
            </>
         )}
@@ -288,27 +358,45 @@ export default function CreateUserModal({ isOpen, onClose, defaultRole = 'client
 
   const renderStep2 = () => (
       <div className="space-y-4">
-          <h4 className="font-semibold text-slate-700 mb-2">Work Experience</h4>
-          <p className="text-sm text-slate-500 mb-4">Please add at least 5 past work experiences.</p>
+          <h4 className="font-semibold text-slate-700 mb-2">Case Experience Details</h4>
+          <p className="text-sm text-slate-500 mb-4">Please add details of your past major cases.</p>
           
           <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2">
               {experiences.map((exp, index) => (
                   <div key={index} className="p-4 bg-slate-50 rounded-lg border border-slate-200 relative">
                       <button onClick={() => removeExperience(index)} className="absolute top-2 right-2 text-slate-400 hover:text-red-500"><X size={16} /></button>
-                      <h5 className="text-xs font-bold text-slate-400 uppercase mb-2">Experience {index + 1}</h5>
-                      <div className="grid grid-cols-2 gap-3">
-                          <input 
-                              className="input text-sm" 
-                              placeholder="Company / Court" 
-                              value={exp.company} 
-                              onChange={(e) => updateExperience(index, 'company', e.target.value)}
-                          />
-                          <input 
-                              className="input text-sm" 
-                              placeholder="Role / Position" 
-                              value={exp.role} 
-                              onChange={(e) => updateExperience(index, 'role', e.target.value)} 
-                           />
+                      <h5 className="text-xs font-bold text-slate-400 uppercase mb-2">Case {index + 1}</h5>
+                      
+                      <div className="space-y-3">
+                        <div className="grid grid-cols-2 gap-3">
+                            <input 
+                                className="input text-sm" 
+                                placeholder="Case Title (e.g. State vs Smith)" 
+                                value={exp.case_title} 
+                                onChange={(e) => updateExperience(index, 'case_title', e.target.value)}
+                            />
+                            <select 
+                                className="input text-sm"
+                                value={exp.case_domain}
+                                onChange={(e) => updateExperience(index, 'case_domain', e.target.value)}
+                            >
+                                <option value="">Select Domain</option>
+                                {LAWYER_SPECIALIZATIONS.map(s => <option key={s} value={s}>{s}</option>)}
+                            </select>
+                        </div>
+                        <textarea
+                            className="textarea text-sm w-full"
+                            placeholder="Case Description..."
+                            value={exp.case_description}
+                            onChange={(e) => updateExperience(index, 'case_description', e.target.value)}
+                            rows="2"
+                        ></textarea>
+                         <input 
+                            className="input text-sm" 
+                            placeholder="Case Outcome (e.g. Acquitted)" 
+                            value={exp.case_outcome} 
+                            onChange={(e) => updateExperience(index, 'case_outcome', e.target.value)}
+                            />
                       </div>
                   </div>
               ))}
@@ -316,7 +404,7 @@ export default function CreateUserModal({ isOpen, onClose, defaultRole = 'client
                 onClick={addExperience}
                 className="w-full py-2 border-2 border-dashed border-slate-300 rounded-lg text-slate-500 hover:border-indigo-500 hover:text-indigo-600 flex items-center justify-center gap-2 font-medium"
               >
-                  <Plus size={16} /> Add Another Experience
+                  <Plus size={16} /> Add Another Case
               </button>
           </div>
       </div>

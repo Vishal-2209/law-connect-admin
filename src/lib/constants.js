@@ -47,5 +47,6 @@ export const LAWYER_SPECIALIZATIONS = [
   'Labor Law',
   'Tax Law',
   'Cyber Law',
-  'Constitutional Law'
+  'Constitutional Law',
+  'Pro Bono'
 ];

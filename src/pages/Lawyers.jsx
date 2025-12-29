@@ -43,11 +43,15 @@ export default function Lawyers() {
     const supabase = getSupabase()
 
     try {
-      // 1. Delete from lawyers table
+      // 1. Delete from lawyer_experience_details (Cascade)
+      const { error: expError } = await supabase.from('lawyer_experience_details').delete().eq('lawyer_id', id)
+      if (expError) console.warn('Experience deletion warning:', expError)
+
+      // 2. Delete from lawyers table
       const { error: dbError } = await supabase.from('lawyers').delete().eq('id', id)
       if (dbError) throw dbError
 
-      // 2. Delete from Auth
+      // 3. Delete from Auth
       const { error: authError } = await supabase.auth.admin.deleteUser(id)
       if (authError) console.warn('Auth deletion warning:', authError)
 
